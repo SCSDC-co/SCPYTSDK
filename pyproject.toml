@@ -1,0 +1,18 @@
+[project]
+name = "SCPYTSDK"
+version = "0.1.0"
+description = "Super Cool Python SDK for Turso Platform API"
+readme = "README.md"
+authors = [
+    { name = "FrancyAngy", email = "francesco@scsdc-co.org" }
+]
+homepage = "https://github.com/SCSDC-co/SCPYTSDK"
+requires-python = ">=3.14"
+dependencies = [
+    "pyjwt>=2.13.0",
+    "requests>=2.34.2",
+]
+
+[build-system]
+requires = ["uv_build>=0.12.5,<0.13.0"]
+build-backend = "uv_build"
