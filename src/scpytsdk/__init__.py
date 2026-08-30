@@ -1,14 +1,15 @@
-import requests
-from uuid import UUID
 from time import sleep
-from typing import Any
-from scpytsdk.classes import Database, DatabaseSeed
+from uuid import UUID
+
+import requests
+
+from scpytsdk.classes import Database, DatabaseSeed, Group
 from scpytsdk.exceptions import (
-    InvalidApikey,
-    InvalidOrganization,
+    DatabaseExists,
     DatabaseNotFound,
     GroupNotFound,
-    DatabaseExists,
+    InvalidApikey,
+    InvalidOrganization,
 )
 
 
@@ -95,11 +96,9 @@ class SCPYTSDK:
             headers=self._headers,
         )
 
-        json = r.json()
-
         dbs: list[Database] = []
 
-        for db_json in json["databases"]:
+        for db_json in r.json()["databases"]:
             dbs += [Database(**db_json)]
 
         return dbs
@@ -149,7 +148,7 @@ class SCPYTSDK:
         seed: DatabaseSeed | None = None,
         size_limit: str | None = None,
     ) -> Database:
-        body: dict[str, Any] = {"name": name, "group": group}
+        body: dict[str, str | dict] = {"name": name, "group": group}
 
         if seed:
             body["seed"] = seed.__dict__
@@ -209,4 +208,15 @@ class SCPYTSDK:
         if r.status_code == 404:
             raise DatabaseNotFound
 
-        return None
+    def list_groups(self) -> list[Group]:
+        r = requests.get(
+            f"{self._endpoint}/v1/organizations/{self._organization}/groups",
+            headers=self._headers,
+        )
+
+        groups: list[Group] = []
+
+        for group_dict in r.json()["groups"]:
+            groups.append(Group(**group_dict))
+
+        return groups
