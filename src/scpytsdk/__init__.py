@@ -1,4 +1,5 @@
 import requests
+from uuid import UUID
 from time import sleep
 from typing import Any
 from scpytsdk.classes import Database, DatabaseSeed
@@ -63,7 +64,7 @@ class SCPYTSDK:
         self,
         group_filter: str | None = None,
         schema_filter: str | None = None,
-        parent_filter: str | Database | None = None,
+        parent_filter: UUID | Database | None = None,
     ) -> list[Database]:
         filters = ""
 
@@ -171,3 +172,41 @@ class SCPYTSDK:
         sleep(0.5)
 
         return self.retreive_db(name)
+
+    def create_db_token(self, database: Database | str) -> str:
+        r = requests.Response()
+
+        if isinstance(database, Database):
+            r = requests.post(
+                f"{self._endpoint}/v1/organizations/{self._organization}/databases/{database.Name}/auth/tokens",
+                headers=self._headers,
+            )
+        else:
+            r = requests.post(
+                f"{self._endpoint}/v1/organizations/{self._organization}/databases/{database}/auth/tokens",
+                headers=self._headers,
+            )
+
+        if r.status_code == 404:
+            raise DatabaseNotFound
+
+        return r.json()["jwt"]
+
+    def rotate_db_tokens(self, database: Database | str) -> None:
+        r = requests.Response()
+
+        if isinstance(database, Database):
+            r = requests.post(
+                f"{self._endpoint}/v1/organizations/{self._organization}/databases/{database.Name}/auth/rotate",
+                headers=self._headers,
+            )
+        else:
+            r = requests.post(
+                f"{self._endpoint}/v1/organizations/{self._organization}/databases/{database}/auth/rotate",
+                headers=self._headers,
+            )
+
+        if r.status_code == 404:
+            raise DatabaseNotFound
+
+        return None
