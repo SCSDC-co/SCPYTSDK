@@ -1,6 +1,15 @@
 import requests
-from scpytsdk.classes import Database
-from scpytsdk.exceptions import InvalidApikey, InvalidOrganization, DatabaseNotFound
+from time import sleep
+from typing import Any
+from scpytsdk.classes import Database, DatabaseSeed
+from scpytsdk.exceptions import (
+    InvalidApikey,
+    InvalidOrganization,
+    DatabaseNotFound,
+    GroupNotFound,
+    DatabaseExists,
+)
+
 
 class SCPYTSDK:
     _endpoint: str = "https://api.turso.tech"
@@ -8,7 +17,12 @@ class SCPYTSDK:
     _organization: str = ""
     _headers: dict = {}
 
-    def __init__(self, apikey: str, organization_slug: str, endpoint: str = "https://api.turso.tech"):
+    def __init__(
+        self,
+        apikey: str,
+        organization_slug: str,
+        endpoint: str = "https://api.turso.tech",
+    ):
         if apikey == "":
             raise InvalidApikey
 
@@ -17,7 +31,13 @@ class SCPYTSDK:
 
         self._endpoint = endpoint
 
-        r = requests.get(f"{endpoint}/v1/auth/validate", headers={"Authorization": f"Bearer {apikey}"})
+        r = requests.get(
+            f"{endpoint}/v1/auth/validate",
+            headers={
+                "Authorization": f"Bearer {apikey}",
+                "Content-type": "application/json",
+            },
+        )
 
         if r.status_code != 200:
             print(r.status_code)
@@ -26,14 +46,25 @@ class SCPYTSDK:
 
         self._apikey = apikey
 
-        if requests.get(f"{endpoint}/v1/organizations/{organization_slug}", headers={"Authorization": f"Bearer {apikey}"}).status_code != 200:
+        if (
+            requests.get(
+                f"{endpoint}/v1/organizations/{organization_slug}",
+                headers={"Authorization": f"Bearer {apikey}"},
+            ).status_code
+            != 200
+        ):
             raise InvalidOrganization
-        
+
         self._organization = organization_slug
 
         self._headers = {"Authorization": f"Bearer {apikey}"}
 
-    def list_dbs(self, group_filter: str | None = None, schema_filter: str | None = None, parent_filter: str | Database | None = None) -> list[Database]:
+    def list_dbs(
+        self,
+        group_filter: str | None = None,
+        schema_filter: str | None = None,
+        parent_filter: str | Database | None = None,
+    ) -> list[Database]:
         filters = ""
 
         if group_filter:
@@ -58,8 +89,11 @@ class SCPYTSDK:
             else:
                 filters += f"parent={parent_filter}"
 
-        r = requests.get(f"{self._endpoint}/v1/organizations/{self._organization}/databases{filters}", headers=self._headers)
-        
+        r = requests.get(
+            f"{self._endpoint}/v1/organizations/{self._organization}/databases{filters}",
+            headers=self._headers,
+        )
+
         json = r.json()
 
         dbs: list[Database] = []
@@ -71,11 +105,17 @@ class SCPYTSDK:
 
     def delete_db(self, database: str | Database) -> None:
         r = requests.Response()
-        
+
         if isinstance(database, Database):
-            r = requests.delete(f"https://api.turso.tech/v1/organizations/{self._organization}/databases/{database.Name}", headers=self._headers)
+            r = requests.delete(
+                f"https://api.turso.tech/v1/organizations/{self._organization}/databases/{database.Name}",
+                headers=self._headers,
+            )
         else:
-            r = requests.delete(f"https://api.turso.tech/v1/organizations/{self._organization}/databases/{database}", headers=self._headers)
+            r = requests.delete(
+                f"https://api.turso.tech/v1/organizations/{self._organization}/databases/{database}",
+                headers=self._headers,
+            )
 
         if r.status_code == 404:
             raise DatabaseNotFound()
@@ -84,9 +124,50 @@ class SCPYTSDK:
 
     def retreive_db(self, database: str | Database) -> Database:
         r = requests.Response()
-        if isinstance(database, Database):
-            r = requests.get(f"{self._endpoint}/v1/organizations/{self._organization}/databases/{database.Name}")
-        else:
-            r = requests.get(f"{self._endpoint}/v1/organizations/{self._organization}/databases/{database.Name}")
 
-        return Database(r.json()["database"])
+        if isinstance(database, Database):
+            r = requests.get(
+                f"{self._endpoint}/v1/organizations/{self._organization}/databases/{database.Name}",
+                headers=self._headers,
+            )
+        else:
+            r = requests.get(
+                f"{self._endpoint}/v1/organizations/{self._organization}/databases/{database}",
+                headers=self._headers,
+            )
+
+        if r.status_code == 404:
+            raise DatabaseNotFound
+
+        return Database(**r.json()["database"])
+
+    def create_db(
+        self,
+        name: str,
+        group: str = "default",
+        seed: DatabaseSeed | None = None,
+        size_limit: str | None = None,
+    ) -> Database:
+        body: dict[str, Any] = {"name": name, "group": group}
+
+        if seed:
+            body["seed"] = seed.__dict__
+
+        if size_limit:
+            body["size_limit"] = size_limit
+
+        r = requests.post(
+            f"{self._endpoint}/v1/organizations/{self._organization}/databases",
+            headers=self._headers,
+            json=body,
+        )
+
+        if r.status_code == 400:
+            raise GroupNotFound
+
+        if r.status_code == 409:
+            raise DatabaseExists
+
+        sleep(0.5)
+
+        return self.retreive_db(name)

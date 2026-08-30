@@ -15,3 +15,7 @@ class Region(str, Enum):
         unknown._value_ = value
         return unknown
 
+class SeedType(str, Enum):
+    DATABASE        = "database"
+    DATABASE_UPLOAD = "database_upload"
+

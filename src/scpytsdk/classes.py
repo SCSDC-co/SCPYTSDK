@@ -1,8 +1,9 @@
 from uuid import UUID
 from dataclasses import dataclass, fields
-from scpytsdk.enums import Region
+from scpytsdk.enums import Region, SeedType
 from enum import Enum
 from typing import get_args, get_origin, get_type_hints
+from datetime import datetime
 
 def _convert_value(value, target_type):
     if isinstance(target_type, type) and issubclass(target_type, Enum):
@@ -45,3 +46,23 @@ class Database:
 
             setattr(self, field.name, value)
 
+
+@dataclass(init=False)
+class DatabaseSeed:
+    type: SeedType
+    name: str
+    timestamp: datetime
+
+    def __init__(self, **kwargs):
+        type_hints = get_type_hints(type(self))
+
+        for field in fields(self):
+            if field.name not in kwargs:
+                continue
+
+            value = kwargs[field.name]
+            field_type = type_hints.get(field.name, field.type)
+
+            value = _convert_value(value, field_type)
+
+            setattr(self, field.name, value)
