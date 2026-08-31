@@ -200,7 +200,6 @@ wheels = [
 
 [[package]]
 name = "scpytsdk"
-version = "0.1.4"
 source = { editable = "." }
 dependencies = [
     { name = "requests" },

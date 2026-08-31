@@ -1,22 +1,19 @@
 [project]
 name = "SCPYTSDK"
-version = "0.1.4"
 description = "Super Cool Python SDK for Turso Platform API"
 readme = "README.md"
 license = "MIT"
-license-files = [
-    "LICENSE",
-]
-authors = [
-    { name = "FrancyAngy", email = "francesco@scsdc-co.org" }
-]
+license-files = ["LICENSE"]
+authors = [{ name = "FrancyAngy", email = "francesco@scsdc-co.org" }]
 homepage = "https://github.com/SCSDC-co/SCPYTSDK"
 repository = "https://github.com/SCSDC-co/SCPYTSDK"
 requires-python = ">=3.10"
-dependencies = [
-    "requests>=2.34.2",
-]
+dependencies = ["requests>=2.34.2"]
+dynamic = ["version"]
 
 [build-system]
-requires = ["uv_build>=0.12.5,<0.13.0"]
-build-backend = "uv_build"
+requires = ["hatchling", "uv-dynamic-versioning"]
+build-backend = "hatchling.build"
+
+[tool.hatch.version]
+source = "uv-dynamic-versioning"
