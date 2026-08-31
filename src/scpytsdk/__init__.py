@@ -135,10 +135,10 @@ class SCPYTSDK:
         if r.status_code == 404:
             raise DatabaseNotFound()
 
-    def retreive_db(self, database: str) -> Database:
+    def retrieve_db(self, database: str) -> Database:
         """
-        Retreives information about the specified database. Returns the specified database's Database object.
-        database: The database to retreive information from. Accepts ONLY the name of the database
+        retrieves information about the specified database. Returns the specified database's Database object.
+        database: The database to retrieve information from. Accepts ONLY the name of the database
         """
         r = requests.get(
             f"{self._endpoint}/v1/organizations/{self._organization}/databases/{database}",
@@ -159,7 +159,7 @@ class SCPYTSDK:
         encryption: DatabaseEncryption | None = None,
     ) -> Database:
         """
-        Creates a database and then retreives information from it. Returns the database's Database object.
+        Creates a database and then retrieves information from it. Returns the database's Database object.
         name: The name of the database to create.
         group: The group where the database will be created. Defaults to "default".
         seed: The database seed. Optional. Used either if the database must be a branch of an existing database or if a libsql database must be uploaded.
@@ -189,9 +189,7 @@ class SCPYTSDK:
         if r.status_code == 409:
             raise DatabaseExists
 
-        sleep(0.5)
-
-        return self.retreive_db(name)
+        return self.retrieve_db(name)
 
     def create_db_token(
         self,
@@ -269,9 +267,9 @@ class SCPYTSDK:
 
         return groups
 
-    def retreive_group(self, group: str) -> Group:
+    def retrieve_group(self, group: str) -> Group:
         """
-        Retreives information from a group in the organization. Returns a Group object.
+        retrieves information from a group in the organization. Returns a Group object.
         group: The group's name.
         """
         r = requests.get(

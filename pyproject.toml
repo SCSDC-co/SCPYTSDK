@@ -17,3 +17,8 @@ build-backend = "hatchling.build"
 
 [tool.hatch.version]
 source = "uv-dynamic-versioning"
+
+[dependency-groups]
+dev = [
+    "pre-commit>=4.6.2",
+]
