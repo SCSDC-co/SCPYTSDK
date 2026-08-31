@@ -283,3 +283,22 @@ class SCPYTSDK:
             raise GroupNotFound
 
         return Group(**r.json()["group"])
+
+    def delete_group(self, group: Group | str):
+        """
+        Deletes a group from the organization.
+        group: The group to be deleted. Can be either the group's name or its object
+        """
+        if isinstance(group, Group):
+            r = requests.delete(
+                f"{self._endpoint}/v1/organizations/{self._organization}/groups/{group.name}",
+                headers=self._headers,
+            )
+        else:
+            r = requests.delete(
+                f"{self._endpoint}/v1/organizations/{self._organization}/groups/{group}",
+                headers=self._headers,
+            )
+
+        if r.status_code == 404:
+            raise GroupNotFound
