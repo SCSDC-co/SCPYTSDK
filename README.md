@@ -5,8 +5,9 @@
 SCPYTSDK is a lightweight, typed Python wrapper around the Turso Platform API. It handles authentication, and gives you simple methods and dataclasses for managing databases, groups, and database tokens — no raw HTTP calls or JSON wrangling required.
 
 [![PyPI version](https://img.shields.io/pypi/v/scpytsdk.svg)](https://pypi.org/project/scpytsdk/)
-[![Python versions](https://img.shields.io/pypi/pyversions/scpytsdk.svg)](https://pypi.org/project/scpytsdk/)
+[![PyPI Downloads](https://img.shields.io/pypi/dd/SCPYTSDK)](https://pypi.org/project/scpytsdk/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/SCSDC-co/SCPYTSDK/blob/main/LICENSE)
+
 
 ## Features
 
