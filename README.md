@@ -225,7 +225,7 @@ Issues and pull requests are welcome at [SCSDC-co/SCPYTSDK](https://github.com/S
 git clone https://github.com/SCSDC-co/SCPYTSDK.git
 cd SCPYTSDK
 uv sync
-pre-commit install
+uv run pre-commit install
 ```
 
 ## License
