@@ -23,6 +23,18 @@ classifiers = [
 Homepage = "https://github.com/SCSDC-co/SCPYTSDK"
 Repository = "https://github.com/SCSDC-co/SCPYTSDK.git"
 
+[tool.ruff]
+line-length = 100
+
+[tool.ruff.format]
+quote-style = "double"
+indent-style = "space"
+docstring-code-format = true
+
+[tool.isort]
+multi_line_output = 3
+line_length = 100
+
 [build-system]
 requires = ["hatchling", "uv-dynamic-versioning"]
 build-backend = "hatchling.build"

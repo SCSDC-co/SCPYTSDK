@@ -4,7 +4,7 @@ from enum import Enum
 from typing import get_args, get_origin, get_type_hints
 from uuid import UUID
 
-from scpytsdk.enums import DatabaseEncryptionCipher, Region, SeedType
+from scpytsdk._enums import DatabaseEncryptionCipher, Region, SeedType
 
 
 def _convert_value(value, target_type):
