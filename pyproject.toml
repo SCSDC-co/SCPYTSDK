@@ -21,10 +21,12 @@ classifiers = [
   "Programming Language :: Python :: 3.13",
   "Programming Language :: Python :: 3.14",
 ]
+keywords = ["turso", "sdk", "api", "REST"]
 
 [project.urls]
 Homepage = "https://github.com/SCSDC-co/SCPYTSDK"
 Repository = "https://github.com/SCSDC-co/SCPYTSDK.git"
+Issues = "https://github.com/SCSDC-co/SCPYTSDK/issues"
 
 [tool.ruff]
 line-length = 100
@@ -46,9 +48,4 @@ build-backend = "hatchling.build"
 source = "uv-dynamic-versioning"
 
 [dependency-groups]
-dev = [
-    "black>=26.5.1",
-    "isort>=9.0.1",
-    "pre-commit>=4.6.2",
-    "ruff>=0.16.5",
-]
+dev = ["black>=26.5.1", "isort>=9.0.1", "pre-commit>=4.6.2", "ruff>=0.16.5"]
