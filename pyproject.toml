@@ -5,11 +5,23 @@ readme = "README.md"
 license = "MIT"
 license-files = ["LICENSE"]
 authors = [{ name = "FrancyAngy", email = "francesco@scsdc-co.org" }]
-homepage = "https://github.com/SCSDC-co/SCPYTSDK"
-repository = "https://github.com/SCSDC-co/SCPYTSDK"
 requires-python = ">=3.10"
 dependencies = ["requests>=2.34.2"]
 dynamic = ["version"]
+classifiers = [
+  "Development Status :: 3 - Alpha",
+  "Intended Audience :: Developers",
+  "Programming Language :: Python :: 3",
+  "Programming Language :: Python :: 3.10",
+  "Programming Language :: Python :: 3.11",
+  "Programming Language :: Python :: 3.12",
+  "Programming Language :: Python :: 3.13",
+  "Programming Language :: Python :: 3.14",
+]
+
+[project.urls]
+Homepage = "https://github.com/SCSDC-co/SCPYTSDK"
+Repository = "https://github.com/SCSDC-co/SCPYTSDK.git"
 
 [build-system]
 requires = ["hatchling", "uv-dynamic-versioning"]
@@ -19,6 +31,4 @@ build-backend = "hatchling.build"
 source = "uv-dynamic-versioning"
 
 [dependency-groups]
-dev = [
-    "pre-commit>=4.6.2",
-]
+dev = ["pre-commit>=4.6.2"]
