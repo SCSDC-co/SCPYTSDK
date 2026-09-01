@@ -16,3 +16,7 @@ class GroupNotFound(Exception):
 
 class DatabaseExists(Exception):
     pass
+
+
+class InvalidOriginDatabase(Exception):
+    pass

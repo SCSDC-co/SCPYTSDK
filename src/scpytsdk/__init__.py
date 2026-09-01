@@ -1,4 +1,7 @@
-from time import sleep
+import pathlib
+import sqlite3
+import tempfile
+from os import PathLike
 from uuid import UUID
 
 import requests
@@ -11,7 +14,23 @@ from scpytsdk.exceptions import (
     GroupNotFound,
     InvalidApikey,
     InvalidOrganization,
+    InvalidOriginDatabase,
 )
+
+
+def dump_mem_to_wal(origin: sqlite3.Connection) -> bytes:
+    with tempfile.TemporaryDirectory() as tmp:
+        db_path = pathlib.Path(tmp) / "tmp.db"
+
+        try:
+            dest = sqlite3.connect(db_path)
+            dest.execute("PRAGMA journal_mode=WAL")
+            origin.backup(dest)
+            dest.execute("PRAGMA wal_checkpoint(TRUNCATE)")
+        finally:
+            dest.close()
+
+        return db_path.read_bytes()
 
 
 class SCPYTSDK:
@@ -49,8 +68,6 @@ class SCPYTSDK:
         )
 
         if r.status_code != 200:
-            print(r.status_code)
-            print(dict(r.json()))
             raise InvalidApikey
 
         self._apikey = apikey
@@ -190,6 +207,46 @@ class SCPYTSDK:
             raise DatabaseExists
 
         return self.retrieve_db(name)
+
+    def upload_db(
+        self,
+        database: Database,
+        origin: str | PathLike[str] | sqlite3.Connection,
+        encryption: DatabaseEncryption | None = None,
+    ) -> None:
+        """
+        Uploads the origin to a database created with seed type set as SeedType.DATABASE_UPLOAD
+        database: The Database object of the target database
+        origin: The origin database. Can either be a path to a local file or a database dump in memory
+        encryption: Optional. The origin database encryption object.
+        """
+
+        if isinstance(origin, (PathLike, str)):
+            db = open(origin, "rb").read()
+        elif "wal" in origin.execute("PRAGMA journal_mode").fetchall()[0]:
+            print("wal")
+            db = origin.serialize()
+        elif "memory" in origin.execute("PRAGMA journal_mode").fetchall()[0]:
+            print("mem")
+            db = dump_mem_to_wal(origin)
+        else:
+            raise InvalidOriginDatabase
+
+        headers: dict[str, str] = {"Content-length": str(len(db))}
+
+        headers["Authorization"] = f"Bearer {self.create_db_token(database, '1m')}"
+
+        if encryption:
+            headers["x-turso-encryption-key"] = encryption.encryption_key
+            headers["x-turso-encryption-cipher"] = encryption.encryption_cipher
+
+        r = requests.post(
+            f"https://{database.Hostname}/v1/upload", data=db, headers=headers
+        )
+
+        if r.status_code == 400:
+            print(r.json())
+            raise InvalidOriginDatabase
 
     def create_db_token(
         self,

@@ -5,14 +5,14 @@
 SCPYTSDK is a lightweight, typed Python wrapper around the Turso Platform API. It handles authentication, and gives you simple methods and dataclasses for managing databases, groups, and database tokens — no raw HTTP calls or JSON wrangling required.
 
 [![PyPI version](https://img.shields.io/pypi/v/scpytsdk.svg)](https://pypi.org/project/scpytsdk/)
-[![PyPI Downloads](https://img.shields.io/pypi/dd/SCPYTSDK)](https://pypi.org/project/scpytsdk/)
+[![Python versions](https://img.shields.io/pypi/pyversions/scpytsdk.svg)](https://pypi.org/project/scpytsdk/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg)](https://github.com/SCSDC-co/SCPYTSDK/blob/main/LICENSE)
-
 
 ## Features
 
 - Automatic API key and organization validation on client creation
 - Full database lifecycle — create, list, retrieve, delete
+- Upload an existing SQLite database from a file path or a live `sqlite3.Connection` (in-memory or WAL) to seed a new database
 - Database auth token creation and rotation, with configurable expiration and access level
 - Group management — list, retrieve, delete
 - Typed dataclasses (`Database`, `Group`, `DatabaseSeed`, `DatabaseEncryption`) with automatic enum/UUID conversion
@@ -30,7 +30,7 @@ Or with [uv](https://docs.astral.sh/uv/):
 uv add scpytsdk
 ```
 
-Requires Python 3.10+.
+Requires Python 3.11+.
 
 ## Quick Start
 
@@ -109,6 +109,33 @@ db = sdk.create_db(
 sdk.delete_db("my-db")
 ```
 
+**Upload a SQLite database.** Create a database with `SeedType.DATABASE_UPLOAD`, then push data into it from a local file or a live `sqlite3.Connection`:
+
+```python
+import sqlite3
+from scpytsdk import DatabaseSeed
+from scpytsdk.enums import SeedType
+
+db = sdk.create_db("my-db", seed=DatabaseSeed(type=SeedType.DATABASE_UPLOAD))
+
+# From a file on disk
+sdk.upload_db(db, "local.db")
+
+# From a file-backed connection already in WAL mode
+con = sqlite3.connect("local.db")
+con.execute("PRAGMA journal_mode=WAL")
+sdk.upload_db(db, con)
+
+# From an in-memory connection — converted to a WAL-mode file behind the scenes,
+# since Turso's upload endpoint requires journal_mode=WAL and :memory: databases
+# can never report WAL mode
+mem_con = sqlite3.connect(":memory:")
+mem_con.execute("CREATE TABLE t (x)")
+sdk.upload_db(db, mem_con)
+```
+
+`origin` accepts a path (`str` or `PathLike`) or a `sqlite3.Connection`. Connections are inspected automatically: a WAL-mode connection is serialized directly, an in-memory connection is copied into a temporary WAL-mode file first, and anything else raises `InvalidOriginDatabase`. Pass `encryption_key`/`encryption_cipher` if the source database uses encryption at rest.
+
 ### Database tokens
 
 **Create a token** for reading/writing to a database:
@@ -146,6 +173,7 @@ sdk.delete_group("default")  # accepts a name or a Group object
 | `list_dbs(group_filter=None, schema_filter=None, parent_filter=None)` | List databases, optionally filtered |
 | `retrieve_db(database)` | Get a single database by name |
 | `create_db(name, group="default", seed=None, size_limit=None, encryption=None)` | Create a database |
+| `upload_db(database, origin, encryption_key=None, encryption_cipher=None)` | Upload a SQLite file or `sqlite3.Connection` to a database seeded with `SeedType.DATABASE_UPLOAD` |
 | `delete_db(database)` | Delete a database |
 | `create_db_token(database, expiration=None, authorization=None)` | Create a database auth token (returns a JWT string) |
 | `rotate_db_tokens(database)` | Invalidate all tokens for a database |
@@ -176,6 +204,7 @@ sdk.delete_group("default")  # accepts a name or a Group object
 | `DatabaseNotFound` | The requested database doesn't exist |
 | `DatabaseExists` | Creating a database that already exists |
 | `GroupNotFound` | The requested group doesn't exist, or a database's target group is invalid |
+| `InvalidOriginDatabase` | `upload_db` was given a connection that's neither WAL nor in-memory, or Turso rejected the upload |
 
 ## Contributing
 

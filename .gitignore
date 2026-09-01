@@ -8,9 +8,10 @@ wheels/
 
 # Virtual environments
 .venv
+.python-version
 
 # Local tests
 lib-tests
 
-# Vscode
+# vscode
 .vscode
