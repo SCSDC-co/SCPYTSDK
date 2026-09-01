@@ -46,4 +46,9 @@ build-backend = "hatchling.build"
 source = "uv-dynamic-versioning"
 
 [dependency-groups]
-dev = ["pre-commit>=4.6.2"]
+dev = [
+    "black>=26.5.1",
+    "isort>=9.0.1",
+    "pre-commit>=4.6.2",
+    "ruff>=0.16.5",
+]
